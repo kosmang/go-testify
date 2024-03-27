@@ -3,10 +3,10 @@ package main
 import (
 	"net/http"
 	"net/http/httptest"
-	"strconv"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 func TestMainHandlerWhenOK(t *testing.T) {
@@ -17,8 +17,8 @@ func TestMainHandlerWhenOK(t *testing.T) {
 	handler.ServeHTTP(responseRecorder, req)
 
 	responseStatusCode := responseRecorder.Result().StatusCode
-	assert.Equal(t, http.StatusOK, responseStatusCode)
-	assert.NotNil(t, responseRecorder.Body)
+	require.Equal(t, http.StatusOK, responseStatusCode)
+	assert.NotEmpty(t, responseRecorder.Body)
 }
 
 func TestMainHandlerWhenWrongCity(t *testing.T) {
@@ -30,11 +30,10 @@ func TestMainHandlerWhenWrongCity(t *testing.T) {
 
 	responseStatusCode := responseRecorder.Result().StatusCode
 	assert.Equal(t, http.StatusBadRequest, responseStatusCode)
-	assert.Equal(t, "wrong city value", responseRecorder.Body.String())
+	assert.Equal(t, []byte("wrong city value"), responseRecorder.Body.Bytes())
 }
 
 func TestMainHandlerWhenCountMoreThanTotal(t *testing.T) {
-	totalCount := 4
 	req := httptest.NewRequest(http.MethodGet, "/cafe?count=5&city=moscow", nil) // здесь нужно создать запрос к сервису
 
 	responseRecorder := httptest.NewRecorder()
@@ -42,11 +41,6 @@ func TestMainHandlerWhenCountMoreThanTotal(t *testing.T) {
 	handler.ServeHTTP(responseRecorder, req)
 
 	// здесь нужно добавить необходимые проверки
-	parameterCount := req.URL.Query().Get("count")
-	requestedCount, err := strconv.Atoi(parameterCount)
-	if err != nil {
-		t.Errorf("want type string, have %T: %v", parameterCount, err)
-	}
-
-	assert.GreaterOrEqual(t, requestedCount, totalCount)
+	expectedList := []byte("Мир кофе, Сладкоежка, Кофе и завтраки, Сытый студент")
+	assert.Equal(t, expectedList, responseRecorder.Body.Bytes())
 }

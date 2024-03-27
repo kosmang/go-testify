@@ -46,8 +46,7 @@ func mainHandle(w http.ResponseWriter, req *http.Request) {
 
 func main() {
 	http.HandleFunc(`/cafe`, mainHandle)
-	err := http.ListenAndServe(":8080", nil)
-	if err != nil {
+	if err := http.ListenAndServe(":8080", nil); err != nil {
 		panic(err)
 	}
 }
