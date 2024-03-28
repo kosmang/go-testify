@@ -3,6 +3,7 @@ package main
 import (
 	"net/http"
 	"net/http/httptest"
+	"strings"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -29,11 +30,12 @@ func TestMainHandlerWhenWrongCity(t *testing.T) {
 	handler.ServeHTTP(responseRecorder, req)
 
 	responseStatusCode := responseRecorder.Result().StatusCode
-	assert.Equal(t, http.StatusBadRequest, responseStatusCode)
-	assert.Equal(t, []byte("wrong city value"), responseRecorder.Body.Bytes())
+	require.Equal(t, http.StatusBadRequest, responseStatusCode)
+	assert.Equal(t, "wrong city value", responseRecorder.Body.String())
 }
 
 func TestMainHandlerWhenCountMoreThanTotal(t *testing.T) {
+	totalCount := 4
 	req := httptest.NewRequest(http.MethodGet, "/cafe?count=5&city=moscow", nil) // здесь нужно создать запрос к сервису
 
 	responseRecorder := httptest.NewRecorder()
@@ -41,6 +43,8 @@ func TestMainHandlerWhenCountMoreThanTotal(t *testing.T) {
 	handler.ServeHTTP(responseRecorder, req)
 
 	// здесь нужно добавить необходимые проверки
-	expectedList := []byte("Мир кофе, Сладкоежка, Кофе и завтраки, Сытый студент")
-	assert.Equal(t, expectedList, responseRecorder.Body.Bytes())
+	responseStatusCode := responseRecorder.Result().StatusCode
+	require.Equal(t, http.StatusOK, responseStatusCode)
+	receivedList := strings.Split(responseRecorder.Body.String(), ", ")
+	assert.Equal(t, totalCount, len(receivedList))
 }
